@@ -18,14 +18,32 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_nested import routers
 
-from api.views import ProjectViewSet, ContributorViewSet, RegisterAPIView, LoginView
+from api.views import ProjectViewSet, ContributorViewSet, RegisterAPIView, \
+    LoginView, IssueViewSet, CommentViewSet
 
+# routeur principal respensable des routes de première niveau pour nos urls
 router = routers.SimpleRouter()
-# Puis lui déclarons une url basée sur le mot clé ‘category’ et notre view
-# afin que l’url générée soit celle que nous souhaitons ‘/api/category/’
+# avec la fonction register nous enregistrons ProjectViewSet sur le routeur principal
+# Cela crée les routes URL pour les opérations CRUD liées aux projets
 router.register('projects', ProjectViewSet, basename='projects')
-router.register('contributor', ContributorViewSet, basename='contributor')
+# création d'un routeur imbriqué (projects_router) à partir du routeur principal
+# Le paramètre lookup='project' spécifie que nous utiliserons le champ project
+# pour rechercher les objets dans les vues associées.
+projects_router = routers.NestedSimpleRouter(router, 'projects', lookup='project')
+
+# nous enregistrons notre vue sur le routeur imbriqué pour créer les urls
+projects_router.register('users', ContributorViewSet, basename='projects-users')
+
+# enregistrons la vue sur les deux routeur
+projects_router.register('issues', IssueViewSet, basename='projects-issues')
+
+
+# Creation du routeur imbriqué (issures_router) à partir du routeur deja imbriqué (projects_routers)
+# on specifi le champ "issue" pour trouver les objects dans les vues associées
+issues_router = routers.NestedSimpleRouter(projects_router, 'issues', lookup='issue')
+issues_router.register('comments', CommentViewSet, basename='projects-issues-comments')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

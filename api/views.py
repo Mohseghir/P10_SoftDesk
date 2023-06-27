@@ -6,9 +6,9 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from api.models import Projects, Contributors
-from api.serializers import UserSerializer, ProjectSerializer, ContributorsSerializer, \
-    LoginSerializer, RegisterSerializer
+from api.models import Projects, Contributors, Issues, Comments
+from api.serializers import ProjectSerializer, ContributorsSerializer, \
+    LoginSerializer, RegisterSerializer, IssuesSerializer, CommentsSerializer
 
 
 # Create your views here.
@@ -75,8 +75,22 @@ class ProjectViewSet(ModelViewSet):
         return Projects.objects.all()
 
 
+class IssueViewSet(ModelViewSet):
+    serializer_class = IssuesSerializer
+
+    def get_queryset(self):
+        return Issues.objects.all()
+
+
 class ContributorViewSet(ModelViewSet):
     serializer_class = ContributorsSerializer
 
     def get_queryset(self):
         return Contributors.objects.all()
+
+
+class CommentViewSet(ModelViewSet):
+    serializer_class = CommentsSerializer
+
+    def get_queryset(self):
+        return Comments.objects.all()
