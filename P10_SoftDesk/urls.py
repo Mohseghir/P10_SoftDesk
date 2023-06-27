@@ -23,30 +23,33 @@ from rest_framework_nested import routers
 from api.views import ProjectViewSet, ContributorViewSet, RegisterAPIView, \
     LoginView, IssueViewSet, CommentViewSet
 
-# routeur principal respensable des routes de première niveau pour nos urls
 router = routers.SimpleRouter()
-# avec la fonction register nous enregistrons ProjectViewSet sur le routeur principal
-# Cela crée les routes URL pour les opérations CRUD liées aux projets
+
 router.register('projects', ProjectViewSet, basename='projects')
-# création d'un routeur imbriqué (projects_router) à partir du routeur principal
-# Le paramètre lookup='project' spécifie que nous utiliserons le champ project
-# pour rechercher les objets dans les vues associées.
-projects_router = routers.NestedSimpleRouter(router, 'projects', lookup='project')
 
-# nous enregistrons notre vue sur le routeur imbriqué pour créer les urls
-projects_router.register('users', ContributorViewSet, basename='projects-users')
+project_router = routers.NestedSimpleRouter(router, r'projects', lookup='projects')
+project_router.register(r'users', ContributorViewSet, basename='project-users')
+## generates:
+# api/project/{project_id}/users/
+# api/project/{project_id}/users/{users_id}/
 
-# enregistrons la vue sur les deux routeur
-projects_router.register('issues', IssueViewSet, basename='projects-issues')
+project_router.register(r'issues', IssueViewSet, basename='project-issues')
+## generates:
+# api/project/{project_id}/issues/
+# api/project/{project_id}/issues/{issues_id}/
 
+issue_router = routers.NestedSimpleRouter(project_router, r'issues', lookup='issue')
+issue_router.register(r'comments', CommentViewSet, basename='project-comments')
+## generates:
+# api/project/{project_id}/issues/{issues_id}/comments/
+# api/project/{project_id}/issues/{issues_id}/comments/{comments_id}/
 
-# Creation du routeur imbriqué (issures_router) à partir du routeur deja imbriqué (projects_routers)
-# on specifi le champ "issue" pour trouver les objects dans les vues associées
-issues_router = routers.NestedSimpleRouter(projects_router, 'issues', lookup='issue')
-issues_router.register('comments', CommentViewSet, basename='projects-issues-comments')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', include(router.urls)),
+    path('', include(project_router.urls)),
+    path('', include(issue_router.urls)),
     path('api/signup/', RegisterAPIView.as_view(), name='signup'),
     path('api/login/', LoginView.as_view(), name='login'),
     path('api/token/', TokenObtainPairView.as_view(), name='token'),
