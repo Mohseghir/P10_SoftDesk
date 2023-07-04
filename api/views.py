@@ -1,4 +1,7 @@
 from django.contrib.auth import authenticate
+from django.db import transaction
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
@@ -7,8 +10,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from api.models import Projects, Contributors, Issues, Comments
+from api.permissions import ProjectPermission
 from api.serializers import ProjectSerializer, ContributorsSerializer, \
-    LoginSerializer, RegisterSerializer, IssuesSerializer, CommentsSerializer
+    LoginSerializer, RegisterSerializer, IssuesSerializer, CommentsSerializer, UserSerializer
 
 
 # Create your views here.
@@ -39,7 +43,7 @@ class RegisterAPIView(GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class LoginView(APIView):
+class LoginView(GenericAPIView):
     serializer_class = LoginSerializer
 
     def post(self, request):
@@ -53,7 +57,7 @@ class LoginView(APIView):
         # Vérifie si l'authentification a réussi
         if user:
             # Génère un jeton de rafraîchissement et un jeton d'accès à l'aide de simplejwt
-            refresh = RefreshToken.for_user(user)
+            serializer = self.serializer_class(user)
 
             # Retourne une réponse avec les jetons
             return Response({
@@ -70,10 +74,34 @@ class LoginView(APIView):
 
 class ProjectViewSet(ModelViewSet):
     serializer_class = ProjectSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Projects.objects.all()
+        user = self.request.user
+        return Projects.objects.filter(author_user_id=user)
 
+    # affiché les projects en fonction du user connecté
+    @action(detail=True, methods=['post'])
+    def users(self, request, pk=None):
+        project = self.get_object()
+        serializer = UserSerializer(data=request.data)
+
+        if serializer.is_valid():
+            user = serializer.save()
+            project.users.add(user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        # Exclure le champ project_id des données envoyées
+        request.data.pop('project_id', None)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 class IssueViewSet(ModelViewSet):
     serializer_class = IssuesSerializer

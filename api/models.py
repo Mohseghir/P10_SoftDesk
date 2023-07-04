@@ -3,9 +3,9 @@ from django.db import models
 
 
 class Projects(models.Model):
-    project_id = models.IntegerField(blank=False, null=True)
-    title = models.CharField(max_length=255, blank=False)
-    description = models.CharField(max_length=2255, blank=False)
+    project_id = models.IntegerField(primary_key=True, unique=True)
+    title = models.CharField(max_length=128, unique=True)
+    description = models.CharField(max_length=8192)
     TYPE_CHOICES = (
         ('B', 'BackEnd'),
         ('F', 'FrontEnd'),
@@ -51,8 +51,7 @@ class Issues(models.Model):
         ("L", "Low")
     )
     priority = models.CharField(max_length=1, choices=PRIORITY_CHOICES)
-    project_id = models.ForeignKey(
-        to=Projects, on_delete=models.CASCADE)
+    project_id = models.ForeignKey(to=Projects, on_delete=models.CASCADE)
     STATUS_CHOICES = (
         ("T", "ToDo"),
         ("I", "InProgress"),

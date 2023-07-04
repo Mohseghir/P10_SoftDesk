@@ -26,33 +26,36 @@ from api.views import ProjectViewSet, ContributorViewSet, RegisterAPIView, \
 router = routers.SimpleRouter()
 
 router.register('projects', ProjectViewSet, basename='projects')
+router.register('comments', CommentViewSet, basename='comments')
+router.register('issues', IssueViewSet, basename='issues')
+router.register('users', ContributorViewSet, basename='users')
 
-project_router = routers.NestedSimpleRouter(router, r'projects', lookup='projects')
-project_router.register(r'users', ContributorViewSet, basename='project-users')
+
+projects_router = routers.NestedSimpleRouter(router, 'projects', lookup='project')
+projects_router.register('users', ContributorViewSet, basename='projects-users')
 ## generates:
 # api/project/{project_id}/users/
 # api/project/{project_id}/users/{users_id}/
 
-project_router.register(r'issues', IssueViewSet, basename='project-issues')
+projects_router.register('issues', IssueViewSet, basename='projects-issues')
 ## generates:
 # api/project/{project_id}/issues/
 # api/project/{project_id}/issues/{issues_id}/
 
-issue_router = routers.NestedSimpleRouter(project_router, r'issues', lookup='issue')
-issue_router.register(r'comments', CommentViewSet, basename='project-comments')
+issues_router = routers.NestedSimpleRouter(projects_router, 'issues', lookup='issue')
+issues_router.register('comments', CommentViewSet, basename='projects-issues-comments')
 ## generates:
 # api/project/{project_id}/issues/{issues_id}/comments/
 # api/project/{project_id}/issues/{issues_id}/comments/{comments_id}/
 
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
-    path('', include(project_router.urls)),
-    path('', include(issue_router.urls)),
+    path('', include(projects_router.urls)),
+    path('', include(issues_router.urls)),
     path('api/signup/', RegisterAPIView.as_view(), name='signup'),
-    path('api/login/', LoginView.as_view(), name='login'),
-    path('api/token/', TokenObtainPairView.as_view(), name='token'),
+    path('login/', LoginView.as_view(), name='login'),
+    path('api/login/', TokenObtainPairView.as_view(), name='token'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='refresh_token'),
     path('api-auth/', include('rest_framework.urls')),
     path('api/', include(router.urls))
