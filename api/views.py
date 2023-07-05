@@ -93,7 +93,7 @@ class ProjectViewSet(ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def update(self, request, *args, **kwargs):
+""" def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         # Exclure le champ project_id des données envoyées
@@ -101,7 +101,7 @@ class ProjectViewSet(ModelViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        return Response(serializer.data)
+        return Response(serializer.data)"""
 
 class IssueViewSet(ModelViewSet):
     serializer_class = IssuesSerializer

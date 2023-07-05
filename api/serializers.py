@@ -53,32 +53,16 @@ class ProjectSerializer(ModelSerializer):
         serializer = IssuesSerializer(queryset, many=True)
         return serializer.data
 
-    def validate_project_id(self, value):
+    """def validate_project_id(self, value):
         # Vérifier si le project_id existe déjà dans la base de données
         if Projects.objects.filter(project_id=value).exists():
             raise serializers.ValidationError('Ce project_id est déjà utilisé.')
-        return value
+        return value"""
 
     def get_queryset(self):
         user = self.request.user
         contributor = Contributors.objects.filter(user_id=user).all()
         return Projects.objects.filter(contributed_by__in=contributor)
-
-    @transaction.atomic
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        project = serializer.save()
-        contributor = Contributors.objects.create(
-            user_id=request.user,
-            project_id=project,
-            role="C"
-        )
-
-        return Response({
-            'project': ProjectSerializer(project, context=self.get_serializer_context()).data,
-            'message': "Project and Contributor created successfully."},
-            status=status.HTTP_201_CREATED)
 
 
 class IssuesSerializer(ModelSerializer):
