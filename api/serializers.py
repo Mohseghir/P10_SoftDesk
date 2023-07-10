@@ -28,7 +28,7 @@ class RegisterSerializer(ModelSerializer):
 class UserSerializer(ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username", "first_name", "last_name", "email", "password"]
+        fields = ["id", "username", "first_name", "last_name"]
 
 
 class LoginSerializer(ModelSerializer):
@@ -94,7 +94,7 @@ class ContributorsSerializer(ModelSerializer):
 
     class Meta:
         model = Contributors
-        fields = ["id", "user_id", "project_id", "role", "user"]
+        fields = ["id", "user_id", "project_id", "role"]
 
     def get_user(self, instance):
         queryset = User.objects.get(id=instance.user_id.id)

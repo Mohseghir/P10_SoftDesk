@@ -1,5 +1,5 @@
 from django.contrib.auth import authenticate
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -93,15 +93,6 @@ class ProjectViewSet(ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-""" def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        # Exclure le champ project_id des données envoyées
-        request.data.pop('project_id', None)
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)"""
 
 class IssueViewSet(ModelViewSet):
     serializer_class = IssuesSerializer
@@ -114,7 +105,23 @@ class ContributorViewSet(ModelViewSet):
     serializer_class = ContributorsSerializer
 
     def get_queryset(self):
-        return Contributors.objects.all()
+
+        return Contributors.objects.filter(project_id=self.kwargs['project_pk'])
+
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        project_id = Projects.objects.get(project_id=self.kwargs['project_pk'])
+        contri = serializer.save(project_id=project_id)
+        contributor = ContributorsSerializer(
+            contri, context=self.get_serializer_context()).data
+        message = "Contributor added successfully."
+
+        return Response({
+            'contributor': contributor,
+            'message': message},
+            status=status.HTTP_201_CREATED)
 
 
 class CommentViewSet(ModelViewSet):
