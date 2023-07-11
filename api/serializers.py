@@ -46,7 +46,7 @@ class ProjectSerializer(ModelSerializer):
 
     class Meta:
         model = Projects
-        fields = ("project_id", "title", "description", "type", "author_user_id", "issues")
+        fields = ("id", "title", "description", "type", "author_user_id", "issues")
 
     def get_issues(self, instance):
         queryset = Issues.objects.filter(project_id=instance)
@@ -94,7 +94,7 @@ class ContributorsSerializer(ModelSerializer):
 
     class Meta:
         model = Contributors
-        fields = ["id", "user_id", "project_id", "role"]
+        fields = ["id", "user_id", "role", "user"]
 
     def get_user(self, instance):
         queryset = User.objects.get(id=instance.user_id.id)

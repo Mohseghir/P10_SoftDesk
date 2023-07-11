@@ -113,9 +113,9 @@ class ContributorViewSet(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         project_id = Projects.objects.get(project_id=self.kwargs['project_pk'])
-        contri = serializer.save(project_id=project_id)
+        cont = serializer.save(project_id=project_id)
         contributor = ContributorsSerializer(
-            contri, context=self.get_serializer_context()).data
+            cont, context=self.get_serializer_context()).data
         message = "Contributor added successfully."
 
         return Response({
