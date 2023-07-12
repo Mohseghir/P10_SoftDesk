@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate
 from django.db import transaction, IntegrityError
+from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -77,7 +78,7 @@ class ProjectViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
+        user = self.request.user.id
         return Projects.objects.filter(author_user_id=user)
 
     # affiché les projects en fonction du user connecté

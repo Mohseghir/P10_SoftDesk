@@ -86,7 +86,7 @@ class CommentsSerializer(ModelSerializer):
         model = Comments
         fields = ["comment_id", "description",
                   "author_user_id", "issue_id", "created_time"]
-        read_only_fields = ["comment_id", "author_user_id", "issue_id"]
+        read_only_fields = ["comment_id", "author_id", "issue_id"]
 
 
 class ContributorsSerializer(ModelSerializer):
