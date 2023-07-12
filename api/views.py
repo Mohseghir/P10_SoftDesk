@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -76,21 +76,35 @@ class LoginView(GenericAPIView):
 class ProjectViewSet(ModelViewSet):
     serializer_class = ProjectSerializer
     permission_classes = [IsAuthenticated]
+    """def get_queryset(self):
+            user = self.request.user.id
+            return Projects.objects.filter(author_user_id=user)"""
 
     def get_queryset(self):
-        user = self.request.user.id
-        return Projects.objects.filter(author_user_id=user)
+        return Projects.objects.filter(
+            Q(author_user_id=self.request.user.id) | Q(contributors__user_id=self.request.user.id)
+        )
 
-    # affiché les projects en fonction du user connecté
+    """ @action(detail=True, methods=['post'])
+     def users(self, request, pk=None):
+         project = self.get_object()
+         serializer = UserSerializer(data=request.data)
+
+         if serializer.is_valid():
+             user = serializer.save()
+             project.users.add(user)
+             return Response(serializer.data, status=status.HTTP_201_CREATED)
+         else:
+             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)"""
+
     @action(detail=True, methods=['post'])
     def users(self, request, pk=None):
         project = self.get_object()
-        serializer = UserSerializer(data=request.data)
-
+        serializer = ContributorsSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
-            project.users.add(user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            contributor = serializer.save(project_id=project)
+            contributor_data = ContributorsSerializer(contributor).data
+            return Response(contributor_data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -105,11 +119,12 @@ class IssueViewSet(ModelViewSet):
 class ContributorViewSet(ModelViewSet):
     serializer_class = ContributorsSerializer
 
+    """def get_queryset(self):
+        return Contributors.objects.filter(project_id=self.kwargs['project_pk'])"""
     def get_queryset(self):
-
-        return Contributors.objects.filter(project_id=self.kwargs['project_pk'])
-
-    @transaction.atomic
+        project_id = self.kwargs['project_pk']
+        return Contributors.objects.filter(project_id=project_id)
+    """@transaction.atomic
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -122,8 +137,30 @@ class ContributorViewSet(ModelViewSet):
         return Response({
             'contributor': contributor,
             'message': message},
-            status=status.HTTP_201_CREATED)
+            status=status.HTTP_201_CREATED)"""
 
+    """@transaction.atomic
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        project_id = self.kwargs['project_pk']
+        project = get_object_or_404(Projects, id=project_id)
+        contributor = serializer.save(project_id=project)
+        return Response(self.get_serializer(contributor).data, status=status.HTTP_201_CREATED)"""
+
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        project_id = self.kwargs['project_pk']
+        project = get_object_or_404(Projects, id=project_id)
+        contributor = serializer.save(project_id=project)
+
+        message = "Contributor added successfully."
+        return Response({
+            'contributor': self.get_serializer(contributor).data,
+            'message': message
+        }, status=status.HTTP_201_CREATED)
 
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentsSerializer

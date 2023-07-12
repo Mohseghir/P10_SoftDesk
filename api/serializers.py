@@ -61,8 +61,7 @@ class ProjectSerializer(ModelSerializer):
 
     def get_queryset(self):
         user = self.request.user
-        contributor = Contributors.objects.filter(user_id=user).all()
-        return Projects.objects.filter(contributed_by__in=contributor)
+        return Projects.objects.filter(contributors__user_id=user)
 
 
 class IssuesSerializer(ModelSerializer):
