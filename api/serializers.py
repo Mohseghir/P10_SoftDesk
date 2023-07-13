@@ -53,16 +53,11 @@ class ProjectSerializer(ModelSerializer):
         serializer = IssuesSerializer(queryset, many=True)
         return serializer.data
 
-    """def validate_project_id(self, value):
-        # Vérifier si le project_id existe déjà dans la base de données
-        if Projects.objects.filter(project_id=value).exists():
-            raise serializers.ValidationError('Ce project_id est déjà utilisé.')
-        return value"""
-
     def get_queryset(self):
         user = self.request.user
         return Projects.objects.filter(contributors__user_id=user)
-
+    # contributors__user_id fait référence à une relation "many-to-many"
+    # entre les modèles Project et Contributor
 
 class IssuesSerializer(ModelSerializer):
     # creation de l'instance de comments qui est reliée aux issues comme dans le cours

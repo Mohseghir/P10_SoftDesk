@@ -76,27 +76,18 @@ class LoginView(GenericAPIView):
 class ProjectViewSet(ModelViewSet):
     serializer_class = ProjectSerializer
     permission_classes = [IsAuthenticated]
-    """def get_queryset(self):
-            user = self.request.user.id
-            return Projects.objects.filter(author_user_id=user)"""
 
+    #  création de requête complexe avec l'objet Q en combinant des expressions logiques
+    # filtrer les objets de l'auteur OR les objets du contributeur
     def get_queryset(self):
         return Projects.objects.filter(
             Q(author_user_id=self.request.user.id) | Q(contributors__user_id=self.request.user.id)
         )
 
-    """ @action(detail=True, methods=['post'])
-     def users(self, request, pk=None):
-         project = self.get_object()
-         serializer = UserSerializer(data=request.data)
+    # contributors__user_id fait référence à une relation "many-to-many"
+    # entre les modèles Project et Contributor
 
-         if serializer.is_valid():
-             user = serializer.save()
-             project.users.add(user)
-             return Response(serializer.data, status=status.HTTP_201_CREATED)
-         else:
-             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)"""
-
+    # Assigner un contributeur à un projet
     @action(detail=True, methods=['post'])
     def users(self, request, pk=None):
         project = self.get_object()
@@ -108,6 +99,15 @@ class ProjectViewSet(ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # Récupérer la liste des utilisateurs attachés à un projet
+    @action(detail=True, methods=['get'])
+    def get_users(self, request, pk=None):
+        project = self.get_object()
+        contributors = project.contributors.all()
+        users = [contributor.user_id for contributor in contributors]
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data)
+
 
 class IssueViewSet(ModelViewSet):
     serializer_class = IssuesSerializer
@@ -118,35 +118,14 @@ class IssueViewSet(ModelViewSet):
 
 class ContributorViewSet(ModelViewSet):
     serializer_class = ContributorsSerializer
+    http_method_names = ["get", "post"]
 
-    """def get_queryset(self):
-        return Contributors.objects.filter(project_id=self.kwargs['project_pk'])"""
     def get_queryset(self):
         project_id = self.kwargs['project_pk']
         return Contributors.objects.filter(project_id=project_id)
-    """@transaction.atomic
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        project_id = Projects.objects.get(project_id=self.kwargs['project_pk'])
-        cont = serializer.save(project_id=project_id)
-        contributor = ContributorsSerializer(
-            cont, context=self.get_serializer_context()).data
-        message = "Contributor added successfully."
 
-        return Response({
-            'contributor': contributor,
-            'message': message},
-            status=status.HTTP_201_CREATED)"""
-
-    """@transaction.atomic
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        project_id = self.kwargs['project_pk']
-        project = get_object_or_404(Projects, id=project_id)
-        contributor = serializer.save(project_id=project)
-        return Response(self.get_serializer(contributor).data, status=status.HTTP_201_CREATED)"""
+    # filtrer les contributeurs en fonction de l'ID du projet,
+    # qui est extrait de self.kwargs['project_pk']
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
@@ -155,15 +134,17 @@ class ContributorViewSet(ModelViewSet):
         project_id = self.kwargs['project_pk']
         project = get_object_or_404(Projects, id=project_id)
         contributor = serializer.save(project_id=project)
+        return Response(self.get_serializer(contributor).data, status=status.HTTP_201_CREATED)
+    #  récupérer le projet correspondant à l'ID du projet transmis dans l'URL.
+    #  J'ai utilisé get_object_or_404 pour récupérer l'objet Projects ou renvoyer une erreur 404
+    #  si le projet n'existe pas. Ensuite, j'ai sauvegardé le contributeur en utilisant serializer
+    #  .save(project_id=project) et renvoyé la réponse avec les données du contributeur créé.
 
-        message = "Contributor added successfully."
-        return Response({
-            'contributor': self.get_serializer(contributor).data,
-            'message': message
-        }, status=status.HTTP_201_CREATED)
 
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentsSerializer
 
     def get_queryset(self):
         return Comments.objects.all()
+
+

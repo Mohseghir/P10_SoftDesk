@@ -4,7 +4,7 @@ from django.db import models
 
 class Projects(models.Model):
     title = models.CharField(max_length=128, unique=True)
-    description = models.CharField(max_length=8192)
+    description = models.CharField(max_length=819)
     TYPE_CHOICES = (
         ('B', 'BackEnd'),
         ('F', 'FrontEnd'),
