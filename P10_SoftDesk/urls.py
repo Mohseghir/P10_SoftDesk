@@ -5,8 +5,8 @@ from rest_framework import routers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_nested.routers import NestedSimpleRouter
 
-from api.views import ProjectViewSet, ContributorViewSet, RegisterAPIView, \
-    LoginView, IssueViewSet, CommentViewSet
+from api.views import ProjectViewSet, ContributorViewSet, RegisterAPIView,\
+    IssueViewSet, CommentViewSet
 
 router = routers.SimpleRouter()
 
@@ -39,10 +39,44 @@ urlpatterns = [
     path('', include(projects_router.urls)),
     path('', include(issues_router.urls)),
     path('api/signup/', RegisterAPIView.as_view(), name='signup'),
-    path('login/', LoginView.as_view(), name='login'),
     path('api/login/', TokenObtainPairView.as_view(), name='token'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='refresh_token'),
     path('api-auth/', include('rest_framework.urls')),
-    path('api/', include(router.urls))
+    path('', include(router.urls))
 
 ]
+"""from rest_framework_nested import routers
+from rest_framework_simplejwt.views import TokenObtainPairView
+from django.contrib import admin
+from django.urls import path, include
+
+from api.views import ProjectViewSet, ContributorViewSet, RegisterAPIView,\
+    IssueViewSet, CommentViewSet
+
+projects_router = routers.SimpleRouter(trailing_slash=False)
+projects_router.register(r"projects/?", ProjectViewSet)
+users_router = routers.NestedSimpleRouter(
+    projects_router, r"projects/?", lookup="projects", trailing_slash=False
+)
+users_router.register(r"users/?", ContributorViewSet, basename="users")
+issues_router = routers.NestedSimpleRouter(
+    projects_router, r"projects/?", lookup="projects", trailing_slash=False
+)
+issues_router.register(r"issues/?", IssueViewSet, basename="issues")
+comments_router = routers.NestedSimpleRouter(
+    issues_router, r"issues/?", lookup="issues", trailing_slash=False
+)
+comments_router.register(r"comments/?", CommentViewSet, basename="comments")
+
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("", include(projects_router.urls)),
+    path("", include(users_router.urls)),
+    path("", include(issues_router.urls)),
+    path("", include(comments_router.urls)),
+    path("signup/", RegisterAPIView.as_view()),
+    path("login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+]"""
+
+
