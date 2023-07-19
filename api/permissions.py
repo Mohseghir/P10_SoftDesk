@@ -1,16 +1,53 @@
-from rest_framework import permissions
+from rest_framework.permissions import BasePermission
+from django.core.exceptions import ObjectDoesNotExist
+from api import models
 
 
-class ProjectPermission(permissions.BasePermission):
+# Fonction pour vérifier si l'utilisateur est l'auteur d'un projet
+def is_author(pk, user):
+    try:
+        content = models.Projects.objects.get(pk=pk)
+    except ObjectDoesNotExist:
+        return True
+    return content.author == user
+
+
+# Fonction pour vérifier si l'utilisateur est un contributeur d'un projet
+def is_contributor(user, project):
+    try:
+        models.Contributors.objects.get(user=user, project=project)
+    except ObjectDoesNotExist:
+        return False
+    return True
+
+
+# Fonction pour vérifier si l'utilisateur est l'auteur d'un commentaire
+def is_author_comment(pk, user):
+    try:
+        content = models.Comments.objects.get(pk=pk)
+    except ObjectDoesNotExist:
+        return True
+    return content.author_user_id == user
+
+
+# Permission pour vérifier si l'utilisateur est un contributeur ou l'auteur d'un projet
+class IsContributorOrAuthorProjectPermission(BasePermission):
     def has_permission(self, request, view):
-        # Autoriser uniquement les utilisateurs authentifiés à effectuer des opérations CRUD
-        if request.method in permissions.SAFE_METHODS:
-            return True  # Autoriser les opérations de lecture (GET)
-        elif request.method == 'POST':
-            return request.user.is_authenticated  # Autoriser la création (POST) uniquement pour les utilisateurs authentifiés
-        else:
-            return False  # Refuser les autres opérations (PUT, PATCH, DELETE)
+        project_pk = view.kwargs.get("project_pk")
+        pk = view.kwargs.get("pk")
 
-    def has_object_permission(self, request, view, obj):
-        # Autoriser les utilisateurs propriétaires à mettre à jour ou supprimer leur propre projet
-        return request.user == obj.created_by
+        if view.action in ("create", "destroy", "update"):
+            return is_author(project_pk, request.user)
+
+        return is_contributor(request.user, project_pk) or is_author(project_pk, request.user)
+
+
+# Permission pour vérifier si l'utilisateur est l'auteur d'un commentaire
+class IsAuthorCommentPermission(BasePermission):
+    def has_permission(self, request, view):
+        pk = view.kwargs.get("pk")
+
+        if view.action == "update":
+            return is_author_comment(pk, request.user)
+
+        return True
