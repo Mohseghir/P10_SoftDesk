@@ -38,8 +38,8 @@ urlpatterns = [
     path('', include(router.urls)),
     path('', include(projects_router.urls)),
     path('', include(issues_router.urls)),
-    path('api/signup/', RegisterAPIView.as_view(), name='signup'),
-    path('api/login/', TokenObtainPairView.as_view(), name='token'),
+    path('signup/', RegisterAPIView.as_view(), name='signup'),
+    path('login/', TokenObtainPairView.as_view(), name='token'),
 ]
 """urlpatterns = [
     path("admin/", admin.site.urls),

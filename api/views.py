@@ -1,5 +1,11 @@
 from django.db.models import Q
 from rest_framework.permissions import IsAuthenticated
+"""from .permissions import IsContributorOrAuthorProjectInComments,\
+    IsContributorOrAuthorInProjects, IsContributorOrAuthor"""
+from . permissions import IsContributorOrAuthorProjectInProjectView, \
+    IsContributorOrAuthorProjectInContributorView, IsContributorOrAuthorProjectInIssueView,\
+    IsContributorOrAuthorProjectInCommentView
+
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -23,7 +29,7 @@ class RegisterAPIView(GenericAPIView):
                     user, context=self.get_serializer_context()
                 ).data,
                 "message": ("User Created Successfully.",
-                            " Now perform Login to get your token"),
+                            " Please Login to get your access token"),
             }
         )
 
@@ -32,7 +38,7 @@ class ProjectViewSet(ModelViewSet):
     # Spécification du sérialiseur
     serializer_class = ProjectSerializer
     # Classes de permission à appliquer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsContributorOrAuthorProjectInProjectView]
     # Définition du queryset pour récupérer tous les objets Project de la base de données
     queryset = Projects.objects.all()
     # Méthodes HTTP autorisées pour cette vue
@@ -44,12 +50,12 @@ class ProjectViewSet(ModelViewSet):
         request.data["author"] = request.user.pk
         request.POST._mutable = False
         return super(ProjectViewSet, self).create(request, *args, **kwargs)
-
+########
     def get_queryset(self):
         # Surcharge de la méthode get_queryset pour filtrer les projets en fonction de l'utilisateur
         return Projects.objects.filter(
             Q(author=self.request.user.id) | Q(contributors__user=self.request.user.id)
-        )
+        ).distinct()
 
     def update(self, request, *args, **kwargs):
         # Surcharge de la méthode update pour mettre à jour un projet existant
@@ -58,7 +64,7 @@ class ProjectViewSet(ModelViewSet):
 
 class ContributorViewSet(ModelViewSet):
     serializer_class = ContributorsSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsContributorOrAuthorProjectInContributorView]
     queryset = Contributors.objects.all()
     http_method_names = ["get", "post", "delete"]
 
@@ -74,7 +80,7 @@ class ContributorViewSet(ModelViewSet):
 
 class IssueViewSet(ModelViewSet):
     serializer_class = IssuesSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsContributorOrAuthorProjectInIssueView]
     queryset = Issues.objects.all()
     http_method_names = ["get", "post", "put", "delete"]
 
@@ -110,7 +116,7 @@ class CommentViewSet(ModelViewSet):
     queryset = Comments.objects.all()
     serializer_class = CommentsSerializer
     http_method_names = ["get", "post", "put", "delete"]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsContributorOrAuthorProjectInCommentView]
 
     def create(self, request, *args, **kwargs):
         request.POST._mutable = True
