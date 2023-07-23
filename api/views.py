@@ -2,9 +2,9 @@ from django.db.models import Q
 from rest_framework.permissions import IsAuthenticated
 """from .permissions import IsContributorOrAuthorProjectInComments,\
     IsContributorOrAuthorInProjects, IsContributorOrAuthor"""
-from . permissions import IsContributorOrAuthorProjectInProjectView, \
-    IsContributorOrAuthorProjectInContributorView, IsContributorOrAuthorProjectInIssueView,\
-    IsContributorOrAuthorProjectInCommentView
+from . permissions import PermissionProjectView, \
+    PermissionContributorView, PermissionIssueView,\
+    PermissionCommentView
 
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -38,7 +38,7 @@ class ProjectViewSet(ModelViewSet):
     # Spécification du sérialiseur
     serializer_class = ProjectSerializer
     # Classes de permission à appliquer
-    permission_classes = [IsAuthenticated, IsContributorOrAuthorProjectInProjectView]
+    permission_classes = [IsAuthenticated, PermissionProjectView]
     # Définition du queryset pour récupérer tous les objets Project de la base de données
     queryset = Projects.objects.all()
     # Méthodes HTTP autorisées pour cette vue
@@ -64,7 +64,7 @@ class ProjectViewSet(ModelViewSet):
 
 class ContributorViewSet(ModelViewSet):
     serializer_class = ContributorsSerializer
-    permission_classes = [IsAuthenticated, IsContributorOrAuthorProjectInContributorView]
+    permission_classes = [IsAuthenticated, PermissionContributorView]
     queryset = Contributors.objects.all()
     http_method_names = ["get", "post", "delete"]
 
@@ -80,7 +80,7 @@ class ContributorViewSet(ModelViewSet):
 
 class IssueViewSet(ModelViewSet):
     serializer_class = IssuesSerializer
-    permission_classes = [IsAuthenticated, IsContributorOrAuthorProjectInIssueView]
+    permission_classes = [IsAuthenticated, PermissionIssueView]
     queryset = Issues.objects.all()
     http_method_names = ["get", "post", "put", "delete"]
 
@@ -116,7 +116,7 @@ class CommentViewSet(ModelViewSet):
     queryset = Comments.objects.all()
     serializer_class = CommentsSerializer
     http_method_names = ["get", "post", "put", "delete"]
-    permission_classes = [IsAuthenticated, IsContributorOrAuthorProjectInCommentView]
+    permission_classes = [IsAuthenticated, PermissionCommentView]
 
     def create(self, request, *args, **kwargs):
         request.POST._mutable = True

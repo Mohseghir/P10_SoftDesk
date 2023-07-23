@@ -71,7 +71,7 @@ def is_author_comment(pk, user):
 """
 
 
-class IsContributorOrAuthorProjectInProjectView(BasePermission):
+class PermissionProjectView(BasePermission):
     def has_permission(self, request, view):
         if view.kwargs.get("pk") is None:
             return True
@@ -85,7 +85,7 @@ class IsContributorOrAuthorProjectInProjectView(BasePermission):
         )
 
 
-class IsContributorOrAuthorProjectInContributorView(BasePermission):
+class PermissionContributorView(BasePermission):
     def has_permission(self, request, view):
         if view.action in ("create", "destroy", "update"):
             return is_author(view.kwargs["project_pk"], request.user)
@@ -94,14 +94,14 @@ class IsContributorOrAuthorProjectInContributorView(BasePermission):
         ) or is_author(view.kwargs["project_pk"], request.user)
 
 
-class IsContributorOrAuthorProjectInIssueView(BasePermission):
+class PermissionIssueView(BasePermission):
     def has_permission(self, request, view):
         if view.action in ("destroy", "update"):
             return is_author(view.kwargs["project_pk"], request.user)
         return is_contributor(request.user, view.kwargs["project_pk"])
 
 
-class IsContributorOrAuthorProjectInCommentView(BasePermission):
+class PermissionCommentView(BasePermission):
     def has_permission(self, request, view):
         if view.action in ("update", "destroy"):
             return is_author_comment(view.kwargs["pk"], request.user)
