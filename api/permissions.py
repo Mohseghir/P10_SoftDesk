@@ -33,42 +33,14 @@ def is_author_comment(pk, user):
 # Les commentaires doivent être visibles par tous les contributeurs au
 # projet et par le responsable du projet, mais seul leur auteur peut les
 # actualiser ou les supprimer.
-"""class IsContributorOrAuthorProjectInComments(BasePermission):
-    def has_permission(self, request, view):
-        if view.action in ("update", "destroy"):
-            return is_author_comment(view.kwargs["pk"], request.user)
-        return is_contributor(request.user,
-                              view.kwargs["pk"]) or is_author(
-            view.kwargs["pk"], request.user
-        )"""
 
 # Un problème ne peut être actualisé ou supprimé que par son auteur,
 # mais il doit rester visible par tous les contributeurs au projet.
 
-"""class IsContributorOrAuthorInProjects(BasePermission):
-    def has_permission(self, request, view):
-        if view.kwargs.get("pk") is None:
-            return True
-        if view.action == "create":
-            return True
-        if view.action in ("update", "destroy"):
-            return is_author(view.kwargs["pk"], request.user)
-        return is_contributor(request.user,
-                              view.kwargs["pk"]) or is_author(
-            view.kwargs["pk"], request.user
-        )
-"""
 
 # Il est interdit à tout utilisateur autre que l'auteur de demander une mise à
 # jour et de supprimer des demandes sur une question/un projet/un
 # commentaire.
-
-"""class IsContributorOrAuthor(BasePermission):
-    def has_permission(self, request, view):
-        if view.action in ("update", "destroy"):
-            return is_author(request.user, view.kwargs["project_pk"])
-        return is_contributor(view.kwargs["project_pk"], request.user)
-"""
 
 
 class PermissionProjectView(BasePermission):
