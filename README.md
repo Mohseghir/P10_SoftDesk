@@ -1,7 +1,7 @@
 # P10 SoftDesk
 Créez une API sécurisée RESTful en utilisant Django REST
 
-# Exploitation du programme:
+# Exploitation du programme :
 
 Pour utiliser l'outil il vous faut :
 
@@ -41,7 +41,7 @@ Depuis un navigateur ou depuis Postman, saisissez l'adresse http://127.0.0.1:800
 
 # Documentation de l'API :
 
-La documentation de l'API est accessible à cette adresse :
+La documentation de l'API est accessible à cette adresse : https://documenter.getpostman.com/view/25962488/2s946mbAqZ
 
 # Auteur : 
 Mohamed BAGHAOUI
