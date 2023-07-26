@@ -1,6 +1,6 @@
 from django.db.models import Q
 from rest_framework.permissions import IsAuthenticated
-from . permissions import PermissionProjectView, \
+from .permissions import PermissionProjectView, \
     PermissionContributorView, PermissionIssueView,\
     PermissionCommentView
 
