@@ -1,7 +1,5 @@
 from django.db.models import Q
 from rest_framework.permissions import IsAuthenticated
-"""from .permissions import IsContributorOrAuthorProjectInComments,\
-    IsContributorOrAuthorInProjects, IsContributorOrAuthor"""
 from . permissions import PermissionProjectView, \
     PermissionContributorView, PermissionIssueView,\
     PermissionCommentView
@@ -50,7 +48,7 @@ class ProjectViewSet(ModelViewSet):
         request.data["author"] = request.user.pk
         request.POST._mutable = False
         return super(ProjectViewSet, self).create(request, *args, **kwargs)
-########
+
     def get_queryset(self):
         # Surcharge de la méthode get_queryset pour filtrer les projets en fonction de l'utilisateur
         return Projects.objects.filter(
@@ -69,6 +67,7 @@ class ContributorViewSet(ModelViewSet):
     http_method_names = ["get", "post", "delete"]
 
     def create(self, request, *args, **kwargs):
+        # reprise des clés étrangères
         request.POST._mutable = True
         request.data["project"] = self.kwargs["project_pk"]
         request.POST._mutable = False
